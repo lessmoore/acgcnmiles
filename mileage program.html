@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animal Crossing GCN Mileage Program</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        @font-face {
+            font-family: 'FinkHeavy';
+            src: url('FinkHeavy.otf') format('opentype');
+        }
+        body {
+            font-family: 'FinkHeavy', Arial, sans-serif;
+            background: url('background_day.png') no-repeat center center fixed;
+            background-size: cover;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            position: relative;
+        }
+        .container {
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            max-width: 1000px;
+            width: 90%;
+            text-align: center;
+            background: rgba(173, 216, 230, 0.8);
+        }
+        .points {
+            margin-bottom: 20px;
+            font-size: 1.2em;
+            color: #000;
+        }
+        .tasks {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .task {
+            background-size: cover;
+            background-position: center;
+            padding: 15px;
+            border-radius: 50%;
+            width: 130px;
+            height: 130px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, transform 0.2s;
+            position: relative;
+            background-color: rgba(240, 255, 240, 0.8);
+            color: #000;
+        }
+        .task:hover {
+            transform: scale(1.05);
+        }
+        .task span {
+            margin-bottom: 10px;
+            font-size: 1.1em;
+            z-index: 1;
+        }
+        .task button {
+            padding: 8px 15px;
+            background-color: #ff6347;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 5px;
+            transition: background 0.2s;
+            z-index: 1;
+            display: none;
+        }
+        .task:hover button {
+            display: inline-block;
+        }
+        .task button:hover {
+            background-color: #e55347;
+        }
+        .tools {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .tools label {
+            display: block;
+            margin-bottom: 10px;
+            color: #000;
+        }
+        .reset-button {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            transition: background 0.2s, transform 0.2s;
+        }
+        .reset-button:hover {
+            background: #d43c2c;
+            transform: scale(1.1);
+        }
+        button.open-shop, button.open-catalogue {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 10px 5px;
+            transition: background 0.2s, transform 0.2s;
+        }
+        button.open-shop:hover, button.open-catalogue:hover {
+            background: #2980b9;
+            transform: scale(1.1);
+        }
+        .popup {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 10px;
+            background: #ff6347;
+            color: white;
+            border-radius: 5px;
+            opacity: 0;
+            transition: opacity 0.5s, top 0.5s;
+        }
+        .task.explode {
+            animation: explode 0.5s forwards;
+        }
+        @keyframes explode {
+            to {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+        .title {
+            color: #ffd700;
+            -webkit-text-stroke: 1px #8b4513;
+            font-weight: bold;
+        }
+        .multiplier {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: red;
+            color: white;
+            padding: 2px 5px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        #shootingStar {
+            position: fixed;
+            width: 50px;
+            height: 50px;
+            display: none;
+            cursor: pointer;
+            z-index: 1000;
+        }
+        .sound-control {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            width: 30px;
+            height: 30px;
+        }
+        .reshuffle-button {
+            background: #f39c12;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            transition: background 0.2s, transform 0.2s;
+            margin-top: 10px;
+        }
+        .reshuffle-button:hover {
+            background: #e67e22;
+            transform: scale(1.1);
+        }
+        .frenzy-text {
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: red;
+            color: white;
+            padding: 20px;
+            border-radius: 5px;
+            font-size: 2.5em;
+            font-weight: bold;
+            z-index: 1001;
+        }
+        .frenzy-timer {
+            position: fixed;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: black;
+            color: white;
+            padding: 5px;
+            border-radius: 5px;
+            font-size: 1.2em;
+            font-weight: bold;
+            z-index: 1001;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="main-container">
+        <h1 class="title">Animal Crossing GCN Mileage Program</h1>
+        <div class="points">Mileage Points: <span id="points">0</span></div>
+        <div class="tasks" id="task-list"></div>
+        <button class="open-shop" onclick="openShop()">Open Shop</button>
+        <button class="open-catalogue" onclick="openCatalogue()">Catalogue</button>
+        <button class="reset-button" onclick="confirmResetMiles()">Reset Miles</button>
+        <button class="reshuffle-button" onclick="reshuffleTasks()">Reshuffle Tasks</button>
+    </div>
+    <div class="tools">
+        <h3 class="title">Tools</h3>
+        <label><input type="checkbox" id="hasAxe"> Axe</label>
+        <label><input type="checkbox" id="hasFishingRod"> Fishing Rod</label>
+        <label><input type="checkbox" id="hasNet"> Net</label>
+        <label><input type="checkbox" id="hasShovel"> Shovel</label>
+    </div>
+    <img id="shootingStar" src="shooting_star.png" alt="Shooting Star">
+    <audio id="starSound" src="star_sound.mp3" preload="auto"></audio>
+    <audio id="frenzySound" src="frenzy_sound.mp3" preload="auto"></audio>
+    <img src="sounddisable.png" alt="Sound Control" class="sound-control" id="sound-control" onclick="toggleSound()">
+    <script>
+        const version = '1.4'; // Change this version when tasks or logic change
+        let miles = 0;
+        let activeTasks = [];
+        let boughtItems = JSON.parse(localStorage.getItem('boughtItems')) || [];
+        let soundEnabled = localStorage.getItem('soundEnabled') !== 'false';
+        let taskFrenzyActive = false; // Track if Task Frenzy is active
+        let taskFrenzyTimeout;
+        let frenzyEndTime;
+
+        const items = {
+            "Bells": [
+                { name: "30,000 Bells", password: "WB28pARAcnownU jMCK%hTk8JHyrT", miles: 1000, image: "images/30000bells.png" },
+            ],
+            "Fruits": [
+                { name: "Apple", password: "AgDFOQlhmI6BoP TY5rRiflA4#Kgk", miles: 1000, image: "images/apple.png" },
+                { name: "Cherry", password: "ml%B8kIANISWnf YzlYkgq9eu34#b", miles: 1000, image: "images/cherry.png" },
+                { name: "Pear", password: "%A%B8fIAdmSkgf YtlZ3V599ug4#b", miles: 1000, image: "images/pear.png" },
+                { name: "Peach", password: "DnjlhraEjSnKkb QH7s4gwcO7u57K", miles: 1000, image: "images/peach.png" },
+                { name: "Orange", password: "m7VljXteBBc8AK MZEjvvM&2fC6ph", miles: 1000, image: "images/orange.png" }
+            ],
+            "Tools (Player Specific)": [
+                { name: "Fishing Rod", password: "OI&8JVv4BN4i8@ o4vGfrCdTPYvMG", miles: 1000, image: "images/fishingrod.png" },
+                { name: "Net", password: "sMlaZ#YRN5oosH 2ZuK7x#8x6ZfAW", miles: 1000, image: "images/net.png" },
+                { name: "Axe", password: "bI&8F3v4Vu#iKC o4fGfLC9fHYNMG", miles: 1000, image: "images/axe.png" },
+                { name: "Shovel", password: "JHDvsMA8X9KNOg wME3q%WOfIfcSG", miles: 1000, image: "images/shovel.png" }
+            ],
+            "Outside": [
+                { name: "Deer Scare", password: "aupersmashbroS SFpersmashbroS", miles: 300,  image: "images/deerscare.png" },
+                { name: "Garden Pond", password: "2%Q2fhVeRByAY3 Z5yYAK9z9HxLo7", miles: 250, image: "images/gardenpond.png" },
+                { name: "Low Lantern", password: "7kriyma9iom5ro Flrioma9iomaro", miles: 275, image: "images/lowlantern.png" },
+                { name: "Pond Lantern", password: "NmxIGWIeSLYAAC u6iMwbzCGvFsn&", miles: 300, image: "images/pondlantern.png" },
+                { name: "Shrine Lantern", password: "Mkri3mariomaro Flriomariomaro", miles: 200, image: "images/shrinelantern.png" },
+                { name: "Tall Lantern", password: "PlaystationonE PlaystationTwO", miles: 250, image: "images/talllantern.png" }
+            ],
+            "Tulip": [
+                { name: "Tulip Chair", password: "7kriVma9iom5ro Flrioma9iomaro", miles: 150, image: "images/tulipchair.png" },
+                { name: "Tulip Table", password: "ebucddbkLRgnLg BiMBdbicjCmqi3", miles: 300, image: "images/tuliptable.png" }
+            ],
+            "Ranch": [
+                { name: "Ranch Armchair", password: "Grab5aggEsbbag GrabbagGrabbag", miles: 160, image: "images/rancharmchair.png" },
+                { name: "Ranch Bookcase", password: "44ad&Mushrooms Toad&Mushrooms", miles: 180, image: "images/ranchbookcase.png" },
+                { name: "Ranch Couch", password: "UnidersalCOdes UniversalCodes", miles: 200, image: "images/ranchcouch.png"},
+                { name: "Ranch Dresser", password: "i5iupw5MaN#Z33 VaK4XsEbrp5WZO", miles: 150,  image: "images/ranchdresser.png"},
+                { name: "Ranch Hutch", password: "Psi6ersalClRes Pniversa2Codes", miles: 180, image: "images/ranchhutch.png" },
+                { name: "Ranch Table", password: "UniversalCVpes UniversalCodes", miles: 200, image: "images/ranchtable.png" },
+                { name: "Ranch Tea Table", password: "Toad&MushDooms Toad&Mushrooms", miles: 180, image: "images/ranchteatable.png" },
+                { name: "Ranch Wardrobe", password: "x3XMY@7hrjAtoQ zxoASjVuat5Xoq", miles: 170, image: "images/ranchwardrobe.png" }
+            ],
+            "Music Players": [
+                { name: "Dice Stereo", password: "1LhuwvEDA33fmAdbgnvzbCIBAsyU", miles: 250, image: "images/dicestereo.png" },
+                { name: "Hi-Fi Stereo", password: "1LhuwvEDA22emAdbgnvzbCvBAsyU", miles: 260, image: "images/hifistereo.png" },
+                { name: "High End Stereo", password: "aDSLDyYoeR685bafaBlkwcRCmqi3", miles: 280, image: "images/highendstereo.png" },
+                { name: "JukeBox", password: "a#S8UItokM6850h%LO&kwcRCmqi3", miles: 180, image: "images/jukebox.png" },
+                { name: "Red Boombox", password: "aDShDyYoeR685bafBBlkwcRCmqi3", miles: 250, image: "images/redboombox.png" },
+                { name: "Reel-To-Reel", password: "SupermakiobroSAoImAlCaOssiNG", miles: 275, image: "images/reeltoreel.png" },
+                { name: "Retro Stereo", password: "B6&6KQom9DzR35RfLDC4%EEpCmiR", miles: 250, image: "images/retrostereo.png" }, 
+                { name: "Tape Deck", password: "aPSLDyYoeR685bafZBlkwcRCmqi3", miles: 50, image: "images/tapedeck.png" },
+                { name: "Turntable", password: "Crm%h4BNRyu98d9Uu8exzZKwu7Zl", miles: 200, image: "images/turntable.png" },
+                { name: "White Boombox", password: "HRcE#IbRoJEV8od@rB6leTnU%a3E", miles: 250, image: "images/whiteboombox.png" }
+            ],
+            "Pole": [
+                { name: "Eagle Pole", password: "Toad&Mushrooms Bnad&Mushrooms", miles: 200, image: "images/eaglepole.png" },
+                { name: "Frog Woman Pole", password: "4u%x5fw9GINwLS 9ljjHSoLwZMD7&", miles: 450, image: "images/frogwomanpole.png" }
+            ],
+            "Bears": [
+                { name: "Baby Bear", password: "IHkteTheNewWaa OCRogtingCodez", miles: 500, image: "images/babybear.png" },
+                { name: "Mama Bear", password: "G4YYGDeYiOeSi9 XcOacZuAjszUde", miles: 400, image: "images/mamabear.png" },
+                { name: "Papa Bear", password: "11ACK6I9JE#Jf@ gHCeoBLaa7y%PE", miles: 250, image: "images/papabear.png" }
+            ],
+            "Classy": [
+                { name: "Globe", password: "Toad&Mushsooms Hmad&Mushdpoms", miles: 300, image: "images/globe.png" },
+                { name: "Writing Chair", password: "Q6&6KQom9DzR35 DfkDC4%EEpCmiR", miles: 350, image: "images/writingchair.png" },
+                { name: "Writing Desk", password: "Dwpermari4bro3 Sjpermariobro3", miles: 100, image: "images/writingdesk.png" },
+                { name: "Bass", password: "IVZwszqJdn8hxG En7QnKx@P2Yvb8", miles: 450, image: "images/bass.png" },
+                { name: "Cello", password: "2%Q2fhVeRByAY3 Z5yYAK9z9HxLo7", miles: 150, image: "images/cello.png" },
+                { name: "Violin", password: "2%Q2fhMehAyAY3 Z5yYAK9z@HxLo7", miles: 200, image: "images/violin.png" }
+            ],
+            "Spooky": [
+                { name: "Jack-In-The-Box", password: "2%Q2fhVehAyAY3Z5yYAK9zhHxLo7", miles: 300, image: "images/jackinthebox.png" },
+                { name: "Jack-o'-Lantern", password: "2%Q2fhMeRByAY3Z5yYAK9zcHxLo7", miles: 250, image: "images/jackolantern.png" },
+                { name: "Spooky Bookcase", password: "GsHinkistinkiS LstinkistinkiS", miles: 200, image: "images/spookybookcase.png" },
+                { name: "Spooky Chair", password: "linkz2ldaBanon ganonSeldClink", miles: 150, image: "images/spookychair.png" },
+                { name: "Spooky Clock", password: "2%Q3fhMKRByAY305yYAK9zNHxLo7", miles: 300, image: "images/spookyclock.png" },
+                { name: "Spooky Dresser", password: "piPiES@sTRJmAAshO9cb#9Uh9wO4", miles: 450, image: "images/spookydresser.png" },
+                { name: "Spooky Lamp", password: "Dar4567a912345Ea3456789e23i5", miles: 400, image: "images/spookylamp.png" },
+                { name: "Spooky Paper", password: "SuPermariogolf supermariogOlf", miles: 200, image: "images/spookypaper.png" },
+                { name: "Spooky Table", password: "2%Q3EhMeRByAY3Z5yYAK9zcHxLo7", miles: 500, image: "images/spookytable.png" },
+                { name: "Spooky Vanity", password: "2%Q2fhMdRByAY3O5yYAK9zNHxLo7", miles: 150, image: "images/spookyvanity.png" },
+                { name: "Spooky Wardrobe", password: "jePiES@LTRJmAApcddkwe9Uh9wO4", miles: 200, image: "images/spookywardrobe.png" }
+            ],
+            "Office": [
+                { name: "Office Chair", password: "Wkrioma9iomaro Flriomariomaro", miles: 300, image: "images/officechair.png" },
+                { name: "Office Desk", password: "Dwpermariobro3 Sjpermariobro3", miles: 300, image: "images/officedesk.png" }
+            ],
+            "Space": [
+                { name: "Asteroid", password: "far45678912345 E2345678912345", miles: 400, image: "images/asteroid.png" },
+                { name: "Flying Saucer", password: "2%Q3EhMeRByAY3 n5yYAK9zcHxLo7", miles: 300, image: "images/flyingsaucer.png" },
+                { name: "Lunar Lander", password: "2%Q2fhMehAyAY3 O5yYAK9zaHxLo7", miles: 150, image: "images/lunarlander.png" },
+                { name: "Rocket", password: "XdBiCiDiEiFipY AiBiCiDiEiFiyG", miles: 350, image: "images/rocket.png" },
+                { name: "Satellite", password: "linkzPld#B31on ganozPeldClink", miles: 500, image: "images/satellite.png" },
+                { name: "Space Shuttle", password: "2%Q2fhMKhAyAY3 Z5yYAK9zNHxLo7", miles: 250, image: "images/spaceshuttle.png" },
+                { name: "Space Station", password: "2%42fhMtRByAY3 Z5yYAK9zfHxLo7", miles: 450, image: "images/spacestation.png" },
+                { name: "Spaceman Sam", password: "Zzic2RB%wwcRMs GX1QbaZv0Z7c8x", miles: 200, image: "images/spacemansam.png" }
+            ],
+            "Stone": [
+                { name: "Garden Stone", password: "TwspoGrhumanmY ThRpoNrhCmanyG", miles: 300, image: "images/gardenstone.png" },
+                { name: "Leaning Stone", password: "2%Q2fhVehByAY3 O5yYAK9zNHxLo7", miles: 500, image: "images/leaningstone.png" },
+                { name: "Mossy Stone", password: "KetzfiRkZAc3Uj 29E7UdyDwjsrNU", miles: 400, image: "images/mossystone.png" },
+                { name: "Standing Stone", password: "2%Q2fhVehAyAY3 Z5yYAK9zpHxLo7", miles: 150, image: "images/standingstone.png" },
+                { name: "Stone Couple", password: "2%Q2fhVehAyAY3 Z5yYAK9zNHxLo7", miles: 250, image: "images/stonecouple.png" }
+            ],
+            "Modern": [
+                { name: "Modern Bed", password: "MupersmaspbdoS SFIersmashbroS", miles: 500, image: "images/modernbed.png" },
+                { name: "Modern Chair", password: "A2345678912345 12345678912345", miles: 450, image: "images/modernchair.png" },
+                { name: "Modern Cabinet", password: "MupersmaspbhoS SuIersmashbroS", miles: 500, image: "images/moderncabinet.png" },
+                { name: "Modern Desk", password: "TGGu@@Zzfuq#0z z3Nn27lGVImPGG", miles: 475, image: "images/moderndesk.png" },
+                { name: "Modern Dresser", password: "riPiES@LTRJmAA shO9cb#9Uh9wO4", miles: 500, image: "images/moderndresser.png" },
+                { name: "Modern End Table", password: "A7r45678912345 K2345678912345", miles: 450, image: "images/modernendtable.png" },
+                { name: "Modern Table", password: "AlinktothepasT #linkgothepasT", miles: 500, image: "images/moderntable.png" },
+                { name: "Modern Wardrobe", password: "IDktBTGeNewWay OCRogtingCodez", miles: 450, image: "images/modernwardrobe.png" },
+	    ],
+            "Kiddie": [
+                { name: "Kiddie Bed", password: "SupermariobroS AnImAlCa0ssiNG", miles: 300, image: "images/kiddiebed.png" },
+                { name: "Kiddie Bookcase", password: "aPSLHyYoeR685b afoBlkwcRCmqi3", miles: 300, image: "images/kiddiebookcase.png" },
+                { name: "Kiddie Bureau", password: "MeeCAKafmeatdY LsatloafmeatdY", miles: 250, image: "images/kiddiebureau.png" },
+                { name: "Kiddie Chair", password: "9#S8UItokM6850 h%LOskwcRCmqi3", miles: 275, image: "images/kiddiechair.png" },
+                { name: "Kiddie Clock", password: "IzEiKutsuKiRiY HeCeGtsuBeBiyG", miles: 250, image: "images/kiddieclock.png" },
+                { name: "Kiddie Couch", password: "SVpermaoiobroS ABImAlCaOssiNG", miles: 250, image: "images/kiddiecouch.png" },
+                { name: "Kiddie Dresser", password: "StOpPlAyInGThE WOOmwlCrossing", miles: 300, image: "images/kiddiedresser.png" },
+                { name: "Kiddie Stereo", password: "6LhuwvEDA23fmA dbgnvzbCIBAsyU", miles: 290, image: "images/kiddiestereo.png" },
+                { name: "Kiddie Wardrobe", password: "2d345csYd12g45 KqJ4r6k89ej3f5", miles: 250, image: "images/kiddiewardrobe.png" }
+            ],
+            "Regal": [
+                { name: "Regal Armoire", password: "5iPiES@sTRJmAA shO9cb#9Uh9wO4", miles: 350, image: "images/regalarmoire.png" },
+                { name: "Regal Bed", password: "2%Q2fhVthAyAY3 O5yYAK9zNHxLo7", miles: 200, image: "images/regalbed.png" },
+                { name: "Regal Bookcase", password: "NintendoGamecu bearenumberone", miles: 150, image: "images/regalbookcase.png" },
+                { name: "Regal Chair", password: "Q6&6KQom9DzR35 DfyDC4%EEpCmiR", miles: 450, image: "images/regalchair.png" },
+                { name: "Regal Cupboard", password: "Grab5aggrsbbag GrabbagGrabbag", miles: 400, image: "images/regalcupboard.png" },
+                { name: "Regal Dresser", password: "IHkteHheNewWay OCPostingCodez", miles: 250, image: "images/regaldresser.png" },
+                { name: "Regal Lamp", password: "2%Q3fhMKRByAY3 Z5yYAK9zNHxLo7", miles: 300, image: "images/regallamp.png" },
+                { name: "Regal Sofa", password: "2%QYfhMdRByAY3 O5yYAK9zNHxLo7", miles: 150, image: "images/regalsofa.png" },
+                { name: "Regal Table", password: "Mu&x5fw9GINwLS 9ljjHSoLwZMD7&", miles: 200, image: "images/regaltable.png" },
+                { name: "Regal Vanity", password: "ZzicrRe%wwcRMs GX1QbaZv0Z7c8x", miles: 500, image: "images/regalvanity.png" },
+            ],
+            "Music": [
+                { name: "Only Me", password: "69UIKKdcMs%Qrs nj#H@ooBWIWok5", miles: 100, image: "images/onlyme.png" },
+                { name: "K.K. Condor", password: "Oqtjq2f&4MOru9 IM8dr2pYkxqla#", miles: 150, image: "images/onlyme.png" },
+                { name: "I Love You", password: "69UFKKdcMs%Qrs ij#H@ooBWlWok5", miles: 200, image: "images/onlyme.png" },
+                { name: "K.K. Mambo", password: "Dozdey@DiddysD Donkey@DiddysD", miles: 250, image: "images/onlyme.png" },
+                { name: "K.K. D&B", password: "NbfDGWIeSLYAAC u6iMwbzCGvFs&Q", miles: 300, image: "images/onlyme.png" },
+                { name: "K.K. Rock", password: "69UIKkdcMs%Qrs nj#H@ooBWlWOk5", miles: 350, image: "images/onlyme.png" },
+                { name: "K.K. Ska", password: "1CT1DOY4k36851 r4#613wcRCmqir", miles: 400, image: "images/onlyme.png" },
+                { name: "K.K. Song", password: "jePccCvLTRJoBA Tcddkwe9ej9rz4", miles: 450, image: "images/onlyme.png" },
+                { name: "K.K. Steppe", password: "3%J%wCcdSxWiIt givJMjsAznGVDB", miles: 500, image: "images/onlyme.png" },
+                { name: "K.K. Western", password: "Pi9xAT@bUEioH8 sz09bc#9pbFKb4", miles: 550, image: "images/onlyme.png" }
+            ],
+            "Clothing": [
+                { name: "Airy Shirt", password: "guibfDHdcWqmWcZkrTnDUgkjJ&jb", miles: 100, image: "images/airyshirt.png" },
+                { name: "Ancient Knit", password: "RethnfoqGreebYldtineorfreebY", miles: 120, image: "images/ancientknit.png" },
+                { name: "Arctic Camo", password: "guibfAH1ENqmW3ZkrTnDUgdjJ&jb", miles: 100, image: "images/arcticcamo.png" },
+                { name: "Aurora Knit", password: "1qWrr6ofBu&q7z8rzSNqofyq76ts", miles: 110, image: "images/auroraknit.png" },
+                { name: "Bad Plaid Shirt", password: "1qWwi6IfBeoq7z8XtSNyufyy76ts", miles: 100, image: "images/badplaidshirt.png" },
+                { name: "Bamboo Robe", password: "ordtgZiXdw6i&e qKAfgUjCuog5cC", miles: 120, image: "images/bamboorobe.png" },
+                { name: "BB Shirt", password: "s@T@3vbA4RJQfbHhBEttkoHqqld7", miles: 110, image: "images/bbshirt.png" },
+                { name: "Beatnik Shirt", password: "s@T@3vbA4RJQfbthBEttkoHqqld7", miles: 100, image: "images/beatnikshirt.png" },
+                { name: "Berry Gingham", password: "guibfAHyEeqmWPZkhTnDUgUjJ&jb", miles: 120, image: "images/berrygingham.png" }
+            ],
+            "Mario Items": [
+                { name: "? Block", password: "#SbaUIRmw#gwkY BK66q#LGscTY%2", miles: 2000, image: "images/questionblock.png" },
+                { name: "Block Flooring", password: "IboOBCeHz3YbIC B5igPvQYsfMZMd", miles: 2000, image: "images/blockflooring.png" },
+                { name: "Brick Block", password: "1mWYg6IfB@&q75 8XzSNKpfWj76ts", miles: 2000, image: "images/brickblock.png" },
+                { name: "Cannon", password: "4UT6T6L89ZnOW3 dw&%jtL3qjLZBf", miles: 2000, image: "images/cannon.png" },
+                { name: "Coin", password: "rSbaUIRmwUgwkA 1K6tq#LMscTY%2", miles: 2000, image: "images/coin.png" },
+                { name: "Fire Flower", password: "4UT6T948GZnOW3 dw#%jtLEqj5ZBf", miles: 2000, image: "images/fireflower.png" },
+                { name: "Flag Pole", password: "4UT6T6L89ZnOW3 dwU%jtL3qjLZBf", miles: 2000, image: "images/flagpole.png" },
+                { name: "Green Pipe", password: "1mWYg6IfB@&q7z 8XzSNwpfij76ts", miles: 2000, image: "images/greenpipe.png" },
+                { name: "Koopa Shell", password: "rSbaUIAmwUgwkY 1K6tq#LGscTY%2", miles: 2000, image: "images/koopashell.png" },
+                { name: "Mushroom Mural", password: "QI6DLEnhm23CqH zrUHk3cXd#HOr9", miles: 2000, image: "images/mushroommural.png" },
+                { name: "Starman", password: "4UF6T948GZ3ZW3 dw#%jtLEqj5ZBf", miles: 2000, image: "images/starman.png" },
+                { name: "Super Mushroom", password: "#SbaUIRmw#gwkY Bh66qeLMscTY%2", miles: 2000, image: "images/supermushroom.png" },
+                { name: "Luigi Trophy", password: "BCQ4iZFK%i5xqo SnyrjcrwAeDMkQ", miles: 2000, image: "images/luigitrophy.png" },
+                { name: "Mario Trophy", password: "ECzihy%rtHbHuk o3XlP3IslEqI#K", miles: 2000, image: "images/mariotrophy.png" }
+            ],
+            "Wallpaper": [
+                { name: "Arched Window", password: "qAepnQGwSyXfFNZ9@WoO%Pvha#OK", miles: 100, image: "images/archedwindow.png" },
+                { name: "Backyard Fence", password: "#zjKWDN3bx4p7E635nljHT7tTBTC", miles: 150, image: "images/backyardfence.png" },
+                { name: "Bamboo Wall", password: "5jiSk583al5H2%ZWfacRW37KT4Tw", miles: 200, image: "images/bamboowall.png" },
+                { name: "Blue Trim Wall", password: "Pi&aCKUGKV#2%UJxuMKYfxg5jA@M", miles: 250, image: "images/bluetrimwall.png" },
+                { name: "Blue Wall", password: "5jiKk583aL5H2%ZWfabRW37KT4Tb", miles: 300, image: "images/bluewall.png" },
+                { name: "Cabana Wall", password: "qAx5nQGuSULJFNZ9SJWO%mvjfd@", miles: 350, image: "images/cabanawall.png" },
+                { name: "Cabin Wall", password: "eVRaCHbuzzrS%UpxiEqYfYv5HH@s", miles: 400, image: "images/cabinwall.png" },
+                { name: "Chic Wall", password: "BY4qneovrZkTW8Mvf8fCe3nSj4OU", miles: 450, image: "images/chicwall.png" },
+                { name: "Citrus Wall", password: "qA#5nQGuSrXJFNZ9SfW0%mvjf#OU", miles: 500, image: "images/citruswall.png" },
+                { name: "Exotic Wall", password: "IPv5fWiNTK3F8EDUpqKZyA&Yz9dU", miles: 300, image: "images/exoticwall.png" },
+                { name: "Exquisite Wall", password: "635nljHT7tTBTCZWSabRWx7KT4Tb", miles: 250, image: "images/exquisitewall.png" },
+                { name: "Floral Wall", password: "BYPgneo&rGLWW8MvEo%CexnHYLOU", miles: 250, image: "images/floralwall.png" },
+                { name: "Gold Screen Wall", password: "VYDan9uv3EXJW8Mv@4%Ce3nHYLmU", miles: 275, image: "images/goldscreenwall.png" },
+                { name: "Green Wall", password: "%A{S0tRscBXSulZJCcY@Aeb56Dr", miles: 250, image: "images/greenwall.png" },
+                { name: "Groovy Wall", password: "lY&qgSovE@rJkEM&JwNOuAnzHBO@", miles: 300, image: "images/groovywall.png" },
+                { name: "Imperial Wall", password: "6Pgpfh4NTN5p8EDUpZKZyA&YzZd@", miles: 200, image: "images/imperialwall.png" },
+                { name: "Ivy Wall", password: "rjaKk583jv#S2%ZW@2g&W37zjiY@", miles: 250, image: "images/ivywall.png" },
+                { name: "Rose Wall", password: "rkntenoisbette9ihanMicrosoft", miles: 310, image: "images/rosewall.png" },
+                { name: "Kiddie Wall", password: "Lz3ykG#5JQxsxDphzq%mZc%FJyqI", miles: 250, image: "images/kiddiewall.png" },
+                { name: "Kitchen Wall", password: "eVRaCHbuzz5H%UpxiEqYfYv5HH@s", miles: 200, image: "images/kitchenwall.png" },
+                { name: "Concrete Wall", password: "fADSO6jGqYLaulZJAecY@keb56@r", miles: 550, image: "images/concretewall.png" }
+            ],
+            "Flooring": [
+                { name: "8 Mat Tatami", password: "Di9xES@sTRJsYY sqo9cb#3UaKHs3", miles: 250, image: "images/8mattatami.png" },
+                { name: "Blue Flooring", password: "S2ui@kTheuooH8 RGTU6@F7ld5GX3", miles: 300, image: "images/blueflooring.png" },
+                { name: "Boxing Ring Mat", password: "66zabccn66efgH ayGcbcd6BagfgH", miles: 275, image: "images/boxingringmat.png" },
+                { name: "Checkered Tile", password: "E7M6IE7M6sE7hY E7M6sE7M6sE7yG", miles: 300, image: "images/checkeredtile.png" },
+                { name: "Citrus Carpet", password: "666abcdn66ef7H DhGabcd6B6efgH", miles: 250, image: "images/citruscarpet.png" },
+                { name: "Classroom Floor", password: "xxxAxxxxVZn0W3 ywR%jticqjLZBf", miles: 200, image: "images/classroomfloor.png" },
+                { name: "Closed Road", password: "Ndntendoistheb estgamecompany", miles: 250, image: "images/closedroad.png" },
+                { name: "Daisy Meadow", password: "2Ea4vQLlTUq325 ajQpZfAv9wfYw#", miles: 300, image: "images/daisymeadow.png" },
+                { name: "Exquisite Rug", password: "EciCCy2YLaOuoA lLcZ&@eyHfTols", miles: 250, image: "images/exquisiterug.png" },
+                { name: "Jingle Carpet", password: "B66aPcdnE6ef7H DhGabcd6BAefgH", miles: 275, image: "images/jinglecarpet.png" },
+                { name: "Kitchen Tile", password: "whqewavenhbkut whatravenhbkut", miles: 200, image: "images/kitchentile.png" },
+                { name: "Kitschy Tile", password: "cddhbcdgnzefgg bydabcdafcefgg", miles: 250, image: "images/kitschytile.png" },
+                { name: "Mossy Carpet", password: "wnqfFarJUjE5fz HzvGr4%yn35euz", miles: 200, image: "images/mossycarpet.png" },
+                { name: "Office Flooring", password: "666abcdn66efgH Dy4abcd6B6efgH", miles: 250, image: "images/officeflooring.png" },
+                { name: "Ornate Rug", password: "666mbcd666efgH DyGabcd6B6efgH", miles: 300, image: "images/ornaterug.png" },
+                { name: "Parquet Floor", password: "Nintendoistheb estgamecompany", miles: 320, image: "images/parquetfloor.png" },
+                { name: "Plush Carpet", password: "ShiyypairofsaY ShinypairofsyG", miles: 300, image: "images/plushcarpet.png" },
+                { name: "Ranch Flooring", password: "666abcd666efgH Dy6abcd6B6efgH", miles: 250, image: "images/ranchflooring.png" },
+                { name: "Regal Carpet", password: "xfdaoonfiuhter layuoonfighter", miles: 275, image: "images/regalcarpet.png" },
+                { name: "Saharah's Desert", password: "BovetotraveltY LovetotrabelyG", miles: 200, image: "images/saharahsdesert.png" },
+                { name: "Shanty Mat", password: "sddhbcdgnzefgg bydabcdafcefgg", miles: 300, image: "images/shantymat.png" },
+                { name: "Stone Tile", password: "xxxxxxxxVZn0W3 ywR%jticqjLZBf", miles: 250, image: "images/stonetile.png" },
+                { name: "Tatami Floor", password: "666abcdn66efgH Dyxabcd6B6efgH", miles: 300, image: "images/tatamifloor.png" }
+            ],
+            "Green": [
+                { name: "Green Bench", password: "MupersmashbloSSgIersmashb5oS", miles: 300, image: "images/greenbench.png" },
+                { name: "Green Counter", password: "S2ui@kTheuoHH4RGTU6@F71d5GX3", miles: 320, image: "images/greencounter.png" },
+                { name: "Green Desk", password: "aD%3RxM3M#X3aoQPRxO8Q8xEITqv", miles: 300, image: "images/greendesk.png" },
+                { name: "Green Drum", password: "2%Q2fhVeRByAY3Z5yYAK9zNHxLo7", miles: 275, image: "images/greendrum.png" },
+                { name: "Green Pantry", password: "MupersmashbwoSSupersmashbroS", miles: 300, image: "images/greenpantry.png" },
+                { name: "Green Table", password: "MupersmaspbsoSSFIersmashbroS", miles: 300, image: "images/greentable.png" }
+	    ],
+            "Lovely": [
+                { name: "Lovely Armchair", password: "Q6&6KQom9DzR35 8fLDC4%EEpCmiR", miles: 400, image: "images/lovelyarmchair.png" },
+                { name: "Lovely Bed", password: "ArupsmashbroSaF ySuprsmashbro", miles: 500, image: "images/lovelybed.png" },
+                { name: "Lovely Chair", password: "Animalc4AosinG 2opL5lmaiooFES", miles: 300, image: "images/lovelychair.png" },
+                { name: "Lovely Dresser", password: "Turd8r3ncb2Rrt S@SeToNstEnNeS", miles: 200, image: "images/lovelydresser.png" },
+                { name: "Lovely End Table", password: "FrofrobaFLabab bababuflabiWfo", miles: 100, image: "images/lovelyendtable.png" },
+                { name: "Lovely Kitchen", password: "Grab5aggJZssogG g4abbagGzagg3o", miles: 200, image: "images/lovelykitchen.png" },
+                { name: "Lovely Lamp", password: "ILOVEYOUGUYS", miles: 200, image: "images/lovelylamp.png" },
+                { name: "Lovely Table", password: "Animalc4AosinG zopL5lmaiooFES", miles: 100, image: "images/lovelytable.png" },
+                { name: "Lovely Vanity", password: "Supersmashbros", miles: 100, image: "images/lovelyvanity.png" },
+                { name: "Lovely Wall Clock", password: "3do5agjqgzbGag 8SfgFgG4abb3zs", miles: 300, image: "images/lovelywallclock.png" },
+                { name: "Lovely Wardrobe", password: "LOVELYLOVELYLO", miles: 500, image: "images/lovelywardrobe.png" }
+            ],
+        };
+
+        const tasks = [
+            { name: "Chop down a tree", miles: 50, tool: 'Axe', emoji: '🪓' },
+            { name: "Kick a ball into a river", miles: 20, emoji: '⚽' },
+            { name: "Kick a ball off a cliff", miles: 20, emoji: '⚽' },
+            { name: "Change your shirt", miles: 20, emoji: '👕' },
+            { name: "Catch 5 fish", miles: 100, counter: 0, target: 5, tool: 'Fishing Rod', emoji: '🐟' },
+            { name: "Catch 5 bugs", miles: 100, counter: 0, target: 5, tool: 'Net', emoji: '🦋' },
+            { name: "Do a chore for a villager", miles: 100, emoji: '📓' },
+            { name: "Spin an umbrella", miles: 20, emoji: '☂️' },
+            { name: "Catch a Sea Bass", miles: 30, tool: 'Fishing Rod', emoji: '🎣' },
+            { name: "Shake something out of a tree", miles: 75, emoji: '🌳' },
+            { name: "Catch a Wasp", miles: 40, tool: 'Net', emoji: '🐝' },
+            { name: "Write on the Bulletin Board", miles: 20, emoji: '📌' },
+            { name: "Write in your diary", miles: 20, emoji: '✍️' },
+            { name: "Redeem Miles", miles: 100, emoji: '🎫' },
+            { name: "Mail a letter", miles: 50, emoji: '✉️' },
+            { name: "Mail a letter with a gift", miles: 75, emoji: '🎁' },
+            { name: "Buy something from a villager", miles: 100, emoji: '🫲' },
+            { name: "Spend 500 bells", miles: 50, emoji: '💳' },
+            { name: "Plant a flower", miles: 40, emoji: '🌷' },
+            { name: "Plant sapling", miles: 40, emoji: '🌱' },
+            { name: "Dig up the golden spot", miles: 75, cooldown: true, tool: 'Shovel', emoji: '🌟' },
+            { name: "Pluck 5 weeds", miles: 50, cooldown: true, counter: 0, target: 5, emoji: '🍃' },
+            { name: "Talk to 5 villagers", miles: 50, counter: 0, target: 5, emoji: '😄' },
+            { name: "Earn 500 bells", miles: 50, emoji: '💰' },
+            { name: "Drop trash at the dump", miles: 60, emoji: '🚮' },
+            { name: "Visit the Wishing Well", miles: 20, emoji: '🌠' },
+            { name: "Sell 5 fruit", miles: 50, counter: 0, target: 5, emoji: '🍎' },
+            { name: "Sell 5 shells", miles: 50, counter: 0, target: 5, emoji: '🐚' },
+            { name: "Talk to Copper and Booker", miles: 50, emoji: '🐶' },
+            { name: "Hit the money rock", miles: 100, cooldown: true, tool: 'Shovel', emoji: '🪨' },
+            { name: "Dig up 5 fossils", miles: 100, counter: 0, target: 5, cooldown: true, tool: 'Shovel', emoji: '🦴' },
+            { name: "Talk to Blathers", miles: 25, emoji: '🦉' }
+        ];
+
+        const januaryFish = [
+            { name: "Crucian carp", hours: [0, 23], emoji: '🐟' },
+            { name: "Brook trout", hours: [0, 23], emoji: '🐟' },
+            { name: "Carp", hours: [0, 23], emoji: '🐟' },
+            { name: "Koi", hours: [16, 9], emoji: '🐟' },
+            { name: "Barbel steed", hours: [0, 23], emoji: '🐟' },
+            { name: "Dace", hours: [16, 9], emoji: '🐟' },
+            { name: "Pale chub", hours: [9, 16], emoji: '🐟' },
+            { name: "Bitterling", hours: [0, 23], emoji: '🐟' },
+            { name: "Bluegill", hours: [9, 16], emoji: '🐟' },
+            { name: "Small bass", hours: [0, 23], emoji: '🐟' },
+            { name: "Bass", hours: [0, 23], emoji: '🐟' },
+            { name: "Large bass", hours: [0, 23], emoji: '🐟' },
+            { name: "Freshwater goby", hours: [0, 23], emoji: '🐟' },
+            { name: "Pond smelt", hours: [0, 23], emoji: '🐟' },
+            { name: "Stringfish", hours: [16, 9], emoji: '🐟' },
+            { name: "Goldfish", hours: [0, 23], emoji: '🐟' },
+            { name: "Popeyed goldfish", hours: [9, 16], emoji: '🐟' },
+            { name: "Coelacanth", hours: [16, 9], emoji: '🐟' },
+            { name: "Sea bass", hours: [0, 23], emoji: '🐟' },
+            { name: "Red snapper", hours: [0, 23], emoji: '🐟' }
+        ];
+
+        const julyFish = [
+            { name: "Crucian carp", hours: [0, 23], emoji: '🐟' },
+            { name: "Brook trout", hours: [0, 23], emoji: '🐟' },
+            { name: "Carp", hours: [0, 23], emoji: '🐟' },
+            { name: "Koi", hours: [16, 9], emoji: '🐟' },
+            { name: "Barbel steed", hours: [0, 23], emoji: '🐟' },
+            { name: "Dace", hours: [16, 9], emoji: '🐟' },
+            { name: "Catfish", hours: [16, 9], emoji: '🐟' },
+            { name: "Giant catfish", hours: [16, 9], emoji: '🐟' },
+            { name: "Pale chub", hours: [9, 16], emoji: '🐟' },
+            { name: "Bluegill", hours: [9, 16], emoji: '🐟' },
+            { name: "Small bass", hours: [0, 23], emoji: '🐟' },
+            { name: "Bass", hours: [0, 23], emoji: '🐟' },
+            { name: "Large bass", hours: [0, 23], emoji: '🐟' },
+            { name: "Giant snakehead", hours: [9, 16], emoji: '🐟' },
+            { name: "Eel", hours: [16, 9], emoji: '🐟' },
+            { name: "Freshwater goby", hours: [0, 23], emoji: '🐟' },
+            { name: "Sweetfish", hours: [0, 23], emoji: '🐟' },
+            { name: "Goldfish", hours: [0, 23], emoji: '🐟' },
+            { name: "Popeyed goldfish", hours: [9, 16], emoji: '🐟' },
+            { name: "Guppy", hours: [9, 16], emoji: '🐟' },
+            { name: "Angelfish", hours: [16, 9], emoji: '🐟' }
+        ];
+
+        function getRandomTasks(count = 5) {
+            let selectedTasks = [];
+            let taskNames = new Set();
+            let currentDate = new Date();
+            let currentMonth = currentDate.getMonth();
+            let currentHour = currentDate.getHours();
+            let seasonalFish = [];
+            let seasonalBugs = [];
+
+            if (currentMonth === 0) { // January
+                seasonalFish = januaryFish;
+            } else if (currentMonth === 6) { // July
+                seasonalFish = julyFish;
+                seasonalBugs = julyBugs;
+            }
+
+            let lastFishTaskTime = localStorage.getItem('lastFishTaskTime');
+            let canAddFishTask = true;
+            if (lastFishTaskTime) {
+                let lastTime = new Date(lastFishTaskTime);
+                let timeDiff = (currentDate - lastTime) / 1000 / 60; // Difference in minutes
+                if (timeDiff < 5) { // Changed to 5 minutes
+                    canAddFishTask = false;
+                }
+            }
+
+            let lastBugTaskTime = localStorage.getItem('lastBugTaskTime');
+            let canAddBugTask = true;
+            if (lastBugTaskTime) {
+                let lastTime = new Date(lastBugTaskTime);
+                let timeDiff = (currentDate - lastTime) / 1000 / 60; // Difference in minutes
+                if (timeDiff < 5) { // Changed to 5 minutes
+                    canAddBugTask = false;
+                }
+            }
+
+            function getAvailableSeasonalTasks(seasonalTasks, tool, emoji) {
+                return seasonalTasks.filter(task => (task.hours[0] <= currentHour && task.hours[1] >= currentHour) || (task.hours2 && task.hours2[0] <= currentHour && task.hours2[1] >= currentHour)).map(task => ({ name: `Catch a ${task.name}`, miles: Math.floor(Math.random() * 81) + 20, tool: tool, emoji: emoji, multiplier: 1 }));
+            }
+
+            // Add one seasonal fish task if possible
+            if (canAddFishTask && seasonalFish.length > 0 && Math.random() < 0.5) { // 50% chance
+                const availableFishTasks = getAvailableSeasonalTasks(seasonalFish, 'Fishing Rod', '🐟');
+                if (availableFishTasks.length > 0) {
+                    const selectedFishTask = availableFishTasks[Math.floor(Math.random() * availableFishTasks.length)];
+                    selectedTasks.push(selectedFishTask);
+                    localStorage.setItem('lastFishTaskTime', currentDate.toString());
+                }
+            }
+
+            // Add one seasonal bug task if possible
+            if (canAddBugTask && seasonalBugs.length > 0 && Math.random() < 0.5) { // 50% chance
+                const availableBugTasks = getAvailableSeasonalTasks(seasonalBugs, 'Net', '🐛');
+                if (availableBugTasks.length > 0) {
+                    const selectedBugTask = availableBugTasks[Math.floor(Math.random() * availableBugTasks.length)];
+                    selectedTasks.push(selectedBugTask);
+                    localStorage.setItem('lastBugTaskTime', currentDate.toString());
+                }
+            }
+
+            // Fill the rest with random tasks
+            while (selectedTasks.length < count) {
+                let task = tasks[Math.floor(Math.random() * tasks.length)];
+                if (!taskNames.has(task.name) && canAssignTask(task) && canShowDailyTask(task.name)) {
+                    const multiplier = (Math.random() < 0.1 ? 2 : 1); // 10% chance for 2x multiplier
+                    selectedTasks.push({ ...task, counter: task.counter !== undefined ? 0 : undefined, multiplier: multiplier });
+                    taskNames.add(task.name);
+                }
+            }
+            return selectedTasks;
+        }
+
+        function canAssignTask(task) {
+            if (!task.tool) return true;
+            const toolCheckbox = document.getElementById(`has${task.tool.replace(' ', '')}`);
+            return toolCheckbox && toolCheckbox.checked;
+        }
+
+        function canShowDailyTask(taskName) {
+            const lastCompleted = localStorage.getItem(`${taskName}-completed`);
+            if (!lastCompleted) return true;
+            const lastCompletedTime = new Date(lastCompleted);
+            const now = new Date();
+            const resetTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 5, 0, 0);
+            if (now.getTime() < resetTime.getTime()) resetTime.setDate(resetTime.getDate() - 1);
+            return lastCompletedTime < resetTime;
+        }
+
+        function updateTasks() {
+            const taskList = document.getElementById('task-list');
+            taskList.innerHTML = '';
+            const maxTasks = taskFrenzyActive ? 10 : 5;
+            activeTasks.forEach((task, index) => {
+                if (index < maxTasks) {
+                    const counterDisplay = task.counter !== undefined ? ` (${task.counter}/${task.target})` : '';
+                    const taskElement = document.createElement('div');
+                    taskElement.className = 'task';
+                    taskElement.style.backgroundImage = `url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text x="50%" y="50%" text-anchor="middle" dy=".35em" font-size="80" fill="rgba(0, 0, 0, 0.5)">${task.emoji}</text></svg>')`;
+                    const miles = task.miles * task.multiplier;
+                    taskElement.innerHTML = `<span>${task.name}${counterDisplay}<br>- ${miles} Miles</span><button onclick="completeTask(${index})">Complete</button><button onclick="skipTask(${index})">Skip (-10 Miles)</button>`;
+                    if (task.multiplier > 1) {
+                        const multiplierBubble = document.createElement('div');
+                        multiplierBubble.className = 'multiplier';
+                        multiplierBubble.innerText = task.multiplier + 'x';
+                        taskElement.appendChild(multiplierBubble);
+                    }
+                    taskList.appendChild(taskElement);
+                }
+            });
+        }
+
+        function completeTask(index) {
+            let task = activeTasks[index];
+            if (task.completed) return;
+            if (task.counter !== undefined && task.counter < task.target) {
+                task.counter++;
+                if (task.counter >= task.target) {
+                    completeTaskFully(index, task);
+                } else {
+                    updateTasks();
+                }
+            } else {
+                completeTaskFully(index, task);
+            }
+        }
+
+        function completeTaskFully(index, task) {
+            const taskElement = document.getElementsByClassName('task')[index];
+            taskElement.classList.add('explode');
+            setTimeout(() => {
+                taskElement.remove();
+                let popup = document.createElement('div');
+                popup.className = 'popup';
+                popup.innerText = `+${task.miles * task.multiplier}`;
+                document.body.appendChild(popup);
+                setTimeout(() => {
+                    popup.style.opacity = 1;
+                    popup.style.top = '40%';
+                    setTimeout(() => popup.remove(), 1000);
+                }, 100);
+
+                earnMiles(task.miles * task.multiplier);
+                if (task.cooldown) {
+                    localStorage.setItem(`${task.name}-completed`, new Date().toString());
+                }
+                shiftTasksLeft(index);
+                localStorage.setItem('activeTasks', JSON.stringify(activeTasks));
+                updateTasks();
+            }, 500);
+        }
+
+        function shiftTasksLeft(index) {
+            activeTasks.splice(index, 1);
+            activeTasks.push(getNewUniqueTask());
+        }
+
+        function skipTask(index) {
+            if (miles >= 10) {
+                miles -= 10;
+                document.getElementById('points').innerText = miles;
+                localStorage.setItem('miles', miles);
+                activeTasks[index] = getNewUniqueTask();
+                localStorage.setItem('activeTasks', JSON.stringify(activeTasks));
+                updateTasks();
+            } else {
+                alert('Not enough miles to skip the task!');
+            }
+        }
+
+        function earnMiles(amount) {
+            miles += amount;
+            document.getElementById('points').innerText = miles;
+            localStorage.setItem('miles', miles);
+        }
+
+        function confirmResetMiles() {
+            if (confirm("Are you sure you want to reset miles?")) {
+                resetMiles();
+            }
+        }
+
+        function resetMiles() {
+            miles = 0;
+            document.getElementById('points').innerText = miles;
+            localStorage.setItem('miles', miles);
+        }
+
+        function openShop() {
+            localStorage.setItem('miles', miles);
+            window.open('shop.html', 'Shop', 'width=800,height=600');
+        }
+
+        function openCatalogue() {
+            window.open('catalogue.html', 'Catalogue', 'width=800,height=600');
+        }
+
+        function getNewUniqueTask() {
+            let newTask;
+            do {
+                newTask = getRandomTasks(1)[0];
+            } while (activeTasks.some(task => task.name === newTask.name));
+            return newTask;
+        }
+
+        function spawnShootingStar() {
+            if (Math.random() < 0.1) { // 10% chance
+                const star = document.getElementById('shootingStar');
+                const startX = Math.random() * window.innerWidth;
+                const startY = Math.random() * window.innerHeight / 2;
+                const endX = Math.random() * window.innerWidth;
+                const endY = Math.random() * window.innerHeight;
+
+                star.style.left = `${startX}px`;
+                star.style.top = `${startY}px`;
+                star.style.display = 'block';
+
+                star.animate([
+                    { transform: `translate(${startX}px, ${startY}px)` },
+                    { transform: `translate(${endX}px, ${endY}px)` }
+                ], {
+                    duration: 9000, // Linger longer
+                    easing: 'linear',
+                    iterations: 1,
+                    fill: 'forwards'
+                });
+
+                star.onclick = function() {
+                    star.style.display = 'none';
+                    rewardRandomItem();
+                };
+
+                if (soundEnabled) {
+                    const audio = document.getElementById('starSound');
+                    audio.volume = 0.5; // Lower the volume by 50%
+                    audio.play().catch(error => console.error("Audio playback failed: ", error)); // Debugging audio playback
+                }
+
+                setTimeout(() => {
+                    star.style.display = 'none';
+                }, 6000); // Match the duration to animation
+            }
+        }
+
+        function rewardRandomItem() {
+            const categories = Object.keys(items);
+            const category = categories[Math.floor(Math.random() * categories.length)];
+            const itemList = items[category];
+            const item = itemList[Math.floor(Math.random() * itemList.length)];
+
+            alert(`Congratulations! You received: ${item.name}\nPassword: ${item.password}`);
+
+            let catalogue = JSON.parse(localStorage.getItem('catalogue')) || [];
+            catalogue.push(`${item.name} - Password: ${item.password}`);
+            localStorage.setItem('catalogue', JSON.stringify(catalogue));
+        }
+
+        function reshuffleTasks() {
+            const reshuffledTasks = getRandomTasks(5);
+            activeTasks = reshuffledTasks;
+            localStorage.setItem('activeTasks', JSON.stringify(activeTasks));
+            updateTasks();
+        }
+
+        function setDailyTaskReset() {
+            const now = new Date();
+            const nextReset = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 5, 0, 0);
+            if (now >= nextReset) {
+                nextReset.setDate(nextReset.getDate() + 1);
+            }
+            const timeUntilReset = nextReset - now;
+            setTimeout(() => {
+                reshuffleTasks();
+                setDailyTaskReset();
+            }, timeUntilReset);
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            localStorage.setItem('soundEnabled', soundEnabled);
+            const soundControl = document.getElementById('sound-control');
+            soundControl.src = soundEnabled ? 'sounddisable.png' : 'soundenable.png';
+        }
+
+        function checkTaskFrenzy() {
+            if (Math.random() < 0.05) { // 5% chance
+                activateTaskFrenzy();
+            }
+        }
+
+        function activateTaskFrenzy() {
+            if (taskFrenzyActive) return;
+            taskFrenzyActive = true;
+            document.body.insertAdjacentHTML('afterbegin', '<div class="frenzy-text" id="frenzy-text">Task Frenzy!!!</div>');
+            document.body.insertAdjacentHTML('afterbegin', '<div class="frenzy-timer" id="frenzy-timer">10:00</div>');
+
+            // Play frenzy sound
+            if (soundEnabled) {
+                const audio = document.getElementById('frenzySound');
+                audio.play().catch(error => console.error("Audio playback failed: ", error));
+            }
+
+            activeTasks = getRandomTasks(10).map(task => ({ ...task, multiplier: 5 }));
+            updateTasks();
+
+            frenzyEndTime = Date.now() + 10 * 60 * 1000; // 10 minutes from now
+            updateFrenzyTimer();
+            taskFrenzyTimeout = setTimeout(deactivateTaskFrenzy, 10 * 60 * 1000); // 10 minutes
+        }
+
+        function deactivateTaskFrenzy() {
+            taskFrenzyActive = false;
+            document.getElementById('frenzy-text').remove();
+            document.getElementById('frenzy-timer').remove();
+            const remainingTasks = activeTasks.slice(0, 5);
+            activeTasks = remainingTasks.concat(getRandomTasks(5 - remainingTasks.length));
+            localStorage.setItem('activeTasks', JSON.stringify(activeTasks));
+            updateTasks();
+        }
+
+        function updateFrenzyTimer() {
+            if (!taskFrenzyActive) return;
+            const timerElement = document.getElementById('frenzy-timer');
+            const remainingTime = Math.max(0, frenzyEndTime - Date.now());
+            const minutes = Math.floor(remainingTime / 1000 / 60);
+            const seconds = Math.floor((remainingTime / 1000) % 60);
+            timerElement.innerText = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            if (remainingTime > 0) {
+                requestAnimationFrame(updateFrenzyTimer);
+            }
+        }
+
+        window.onload = function() {
+            const savedVersion = localStorage.getItem('version');
+            if (savedVersion !== version) {
+                localStorage.clear();
+                localStorage.setItem('version', version);
+            }
+            miles = parseInt(localStorage.getItem('miles')) || 0;
+            document.getElementById('points').innerText = miles;
+            activeTasks = JSON.parse(localStorage.getItem('activeTasks')) || getRandomTasks(5);
+            updateTasks();
+            setBackground();
+            loadToolStates();
+            setInterval(spawnShootingStar, 60000); // Check every minute
+            setInterval(checkTaskFrenzy, 60000); // Check for task frenzy every minute
+            setDailyTaskReset();
+            const soundControl = document.getElementById('sound-control');
+            soundControl.src = soundEnabled ? 'sounddisable.png' : 'soundenable.png';
+
+            if (taskFrenzyActive) {
+                const remainingFrenzyTime = frenzyEndTime - Date.now();
+                if (remainingFrenzyTime > 0) {
+                    document.body.insertAdjacentHTML('afterbegin', '<div class="frenzy-text" id="frenzy-text">Task Frenzy!!!</div>');
+                    document.body.insertAdjacentHTML('afterbegin', `<div class="frenzy-timer" id="frenzy-timer">${Math.floor(remainingFrenzyTime / 60000)}:${Math.floor((remainingFrenzyTime / 1000) % 60).toString().padStart(2, '0')}</div>`);
+                    setTimeout(deactivateTaskFrenzy, remainingFrenzyTime);
+                    updateFrenzyTimer();
+                } else {
+                    deactivateTaskFrenzy();
+                }
+            }
+        }
+
+        function setBackground() {
+            const now = new Date();
+            const hours = now.getHours();
+            const background = document.body.style;
+            if (hours >= 6 && hours < 18) {
+                background.backgroundImage = "url('day-background.gif')";
+            } else {
+                background.backgroundImage = "url('night-background.gif')";
+            }
+        }
+
+        function loadToolStates() {
+            document.getElementById('hasAxe').checked = localStorage.getItem('hasAxe') === 'true';
+            document.getElementById('hasFishingRod').checked = localStorage.getItem('hasFishingRod') === 'true';
+            document.getElementById('hasNet').checked = localStorage.getItem('hasNet') === 'true';
+            document.getElementById('hasShovel').checked = localStorage.getItem('hasShovel') === 'true';
+
+            document.getElementById('hasAxe').addEventListener('change', () => {
+                localStorage.setItem('hasAxe', document.getElementById('hasAxe').checked);
+            });
+            document.getElementById('hasFishingRod').addEventListener('change', () => {
+                localStorage.setItem('hasFishingRod', document.getElementById('hasFishingRod').checked);
+            });
+            document.getElementById('hasNet').addEventListener('change', () => {
+                localStorage.setItem('hasNet', document.getElementById('hasNet').checked);
+            });
+            document.getElementById('hasShovel').addEventListener('change', () => {
+                localStorage.setItem('hasShovel', document.getElementById('hasShovel').checked);
+            });
+        }
+    </script>
+</body>
+</html>

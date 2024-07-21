@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catalogue</title>
+    <style>
+        @font-face {
+            font-family: 'Fink Heavy';
+            src: url('FinkHeavy.otf') format('opentype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        body {
+            font-family: 'Fink Heavy', Arial, sans-serif;
+            background: url('catalogue-background.jpg') no-repeat center center fixed;
+            background-size: cover;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.8); /* White background with opacity */
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+            overflow-y: auto;
+        }
+
+        .item {
+            margin-bottom: 10px;
+        }
+
+        .reset-button {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Catalogue</h1>
+        <div id="catalogue-list"></div>
+        <button class="reset-button" onclick="resetCatalogue()">Reset Catalogue</button>
+    </div>
+    <script>
+        function updateCatalogue() {
+            const catalogueList = document.getElementById('catalogue-list');
+            catalogueList.innerHTML = '';
+            const catalogue = JSON.parse(localStorage.getItem('catalogue')) || [];
+            catalogue.forEach(item => {
+                const itemElement = document.createElement('div');
+                itemElement.className = 'item';
+                itemElement.innerText = item.split(' - ')[0]; // Only display item name
+                catalogueList.appendChild(itemElement);
+            });
+        }
+
+        function resetCatalogue() {
+            localStorage.removeItem('catalogue');
+            updateCatalogue();
+        }
+
+        window.onload = function() {
+            updateCatalogue();
+        }
+    </script>
+</body>
+</html>
